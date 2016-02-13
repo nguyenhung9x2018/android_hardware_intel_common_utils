@@ -5,6 +5,7 @@ LOCAL_SRC_FILES := \
     MediaResourceArbitrator.cpp
 
 LOCAL_SHARED_LIBRARIES := \
+    liblog \
     libutils \
     libcutils \
     libexpat \
