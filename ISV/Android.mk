@@ -24,6 +24,7 @@ LOCAL_SHARED_LIBRARIES := \
     libva \
     libva-android \
     libmrm_omx_adaptor \
+    libmedia \
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
