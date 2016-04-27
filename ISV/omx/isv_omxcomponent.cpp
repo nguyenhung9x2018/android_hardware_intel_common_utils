@@ -895,8 +895,12 @@ OMX_ERRORTYPE ISVProcThreadObserver::releaseBuffer(PORT_INDEX index, OMX_BUFFERH
 
     OMX_ERRORTYPE err = OMX_ErrorNone;
     if (bFLush) {
-        pBuffer->nFilledLen = 0;
-        pBuffer->nOffset = 0;
+        if(index == kPortIndexOutput) {
+            pBuffer->nFilledLen = 0;
+            pBuffer->nOffset = 0;
+            pBuffer->nTimeStamp = 0;
+            pBuffer->nFlags = 0;
+        }
         err = mpCallBacks->FillBufferDone(&mBaseComponent, mBaseComponent->pApplicationPrivate, pBuffer);
         ALOGD_IF(ISV_COMPONENT_DEBUG, "%s: flush pBuffer %p", __func__, pBuffer);
         return err;
@@ -906,6 +910,7 @@ OMX_ERRORTYPE ISVProcThreadObserver::releaseBuffer(PORT_INDEX index, OMX_BUFFERH
         pBuffer->nFilledLen = 0;
         pBuffer->nOffset = 0;
         pBuffer->nFlags = 0;
+        pBuffer->nTimeStamp = 0;
 
         if (mISVBufferManager != NULL) {
             ISVBuffer* isvBuffer = mISVBufferManager->mapBuffer(reinterpret_cast<unsigned long>(pBuffer->pBuffer));
