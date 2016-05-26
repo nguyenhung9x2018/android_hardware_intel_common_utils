@@ -232,7 +232,7 @@ status_t ISVWorker::allocSurface(uint32_t* width, uint32_t* height,
 
     memset(&vaExtBuf, 0, sizeof(VASurfaceAttribExternalBuffers));
     switch(format) {
-        case HAL_PIXEL_FORMAT_YV12:
+        case HAL_PIXEL_FORMAT_INTEL_YV12:
             vaExtBuf.pixel_format = VA_FOURCC_YV12;
             vaExtBuf.num_planes = 3;
             vaExtBuf.pitches[0] = stride;
