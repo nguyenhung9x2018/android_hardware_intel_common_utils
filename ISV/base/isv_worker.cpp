@@ -232,7 +232,7 @@ status_t ISVWorker::allocSurface(uint32_t* width, uint32_t* height,
 
     memset(&vaExtBuf, 0, sizeof(VASurfaceAttribExternalBuffers));
     switch(format) {
-        case HAL_PIXEL_FORMAT_INTEL_YV12:
+        case HAL_PIXEL_FORMAT_YV12:
             vaExtBuf.pixel_format = VA_FOURCC_YV12;
             vaExtBuf.num_planes = 3;
             vaExtBuf.pitches[0] = stride;
@@ -242,6 +242,19 @@ status_t ISVWorker::allocSurface(uint32_t* width, uint32_t* height,
             vaExtBuf.offsets[0] = 0;
             vaExtBuf.offsets[1] = stride * *height;
             vaExtBuf.offsets[2] = vaExtBuf.offsets[1] + (stride / 2) * (*height / 2);
+            vaExtBuf.offsets[3] = 0;
+            break;
+        case HAL_PIXEL_FORMAT_INTEL_YV12:
+            vaExtBuf.pixel_format = VA_FOURCC_YV12;
+            vaExtBuf.num_planes = 3;
+            vaExtBuf.pitches[0] = stride;
+            vaExtBuf.pitches[1] = stride / 2;
+            vaExtBuf.pitches[2] = stride / 2;
+            vaExtBuf.pitches[3] = 0;
+            vaExtBuf.offsets[0] = 0;
+            // The height of HAL_PIXEL_FORMAT_INTEL_YV12 gralloc buffer has been aligned with 32 pixels.
+            vaExtBuf.offsets[1] = stride * ((*height + 31) & ~31);
+            vaExtBuf.offsets[2] = vaExtBuf.offsets[1] + (stride / 2) * (((*height + 31) & ~31) / 2);
             vaExtBuf.offsets[3] = 0;
             break;
 #ifdef TARGET_VPP_USE_GEN
