@@ -30,6 +30,9 @@
 #undef LOG_TAG
 #define LOG_TAG "isv-omxil"
 
+#define OUTPUT_STARTUP_DEC_BUF_NUM (38)
+#define FLUSH_WIDTH  352
+#define FLUSH_HEIGHT 288
 
 using namespace android;
 
@@ -66,6 +69,7 @@ ISVComponent::ISVComponent(
         mNumISVBuffers(MIN_ISV_BUFFER_NUM),
         mNumDecoderBuffers(0),
         mNumDecoderBuffersBak(0),
+        mOutputDecoderBufferNum(0),
         mWidth(0),
         mHeight(0),
         mUseAndroidNativeBufferIndex(0),
@@ -343,6 +347,7 @@ OMX_ERRORTYPE ISVComponent::ISV_SetParameter(
             if (def->nPortIndex == kPortIndexOutput) {
                 //set the buffer count we should fill to decoder before feed buffer to VPP
                 mNumDecoderBuffersBak = mNumDecoderBuffers = def->nBufferCountActual - MIN_OUTPUT_NUM - UNDEQUEUED_NUM;
+                mOutputDecoderBufferNum = 0;
                 OMX_VIDEO_PORTDEFINITIONTYPE *video_def = &def->format.video;
 
                 //FIXME: init itself here
@@ -663,6 +668,7 @@ OMX_ERRORTYPE ISVComponent::ISV_FillThisBuffer(
     }
 
     if (mNumDecoderBuffers > 0) {
+        Mutex::Autolock autoLock(mDecoderBufLock);
         mNumDecoderBuffers--;
         ALOGD_IF(ISV_COMPONENT_DEBUG, "%s: fill pBuffer %p to the decoder, decoder still need extra %d buffers", __func__,
                 pBuffer, mNumDecoderBuffers);
@@ -716,6 +722,17 @@ OMX_ERRORTYPE ISVComponent::ISV_FillBufferDone(
         mOutputCropChanged = false;
     }
 
+    if ((mWidth > FLUSH_WIDTH) && (mHeight > FLUSH_HEIGHT) &&
+        (pBuffer->nFilledLen != 0) && (mOutputDecoderBufferNum < OUTPUT_STARTUP_DEC_BUF_NUM)) {
+        Mutex::Autolock autoLock(mDecoderBufLock);
+        // take one buffer from decoder loop here. Fill one buffer to the loop by mNumDecoderBuffers++
+        mNumDecoderBuffers++;
+        mOutputDecoderBufferNum++;
+        ALOGD_IF(ISV_COMPONENT_DEBUG, "%s: return %d decoder output Buffer, mNumDecoderBuffers get %d input buffer",
+                __func__, mOutputDecoderBufferNum, mNumDecoderBuffers);
+        return mpCallBacks->FillBufferDone(&mBaseComponent, pAppData, pBuffer);
+    }
+
     mProcThread->addInput(pBuffer);
 
     return OMX_ErrorNone;
@@ -766,6 +783,7 @@ OMX_ERRORTYPE ISVComponent::ISV_EventHandler(
                 mProcThread->waitFlushFinished();
                 mVPPFlushing = false;
                 mNumDecoderBuffers = mNumDecoderBuffersBak;
+                mOutputDecoderBufferNum = 0;
             }
             break;
         }
@@ -784,6 +802,9 @@ OMX_ERRORTYPE ISVComponent::ISV_EventHandler(
                 ALOGD_IF(ISV_COMPONENT_DEBUG, "%s: output crop changed", __func__);
                 mOutputCropChanged = true;
                 return OMX_ErrorNone;
+            } else if (nData1 == kPortIndexOutput && nData2 == OMX_IndexParamPortDefinition) {
+                ALOGI("%s: output format changed. ISV flush buffers", __func__);
+                mProcThread->notifyFlush();
             }
             break;
         }
