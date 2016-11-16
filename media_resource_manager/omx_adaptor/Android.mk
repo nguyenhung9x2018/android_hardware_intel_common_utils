@@ -22,6 +22,6 @@ LOCAL_C_INCLUDES := \
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libmrm_omx_adaptor
 
-#LOCAL_CFLAGS += -Werror
+LOCAL_CFLAGS += -Werror
 
 include $(BUILD_SHARED_LIBRARY)
