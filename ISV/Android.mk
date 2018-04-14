@@ -36,6 +36,9 @@ LOCAL_C_INCLUDES := \
     $(TARGET_OUT_HEADERS)/libva \
     $(TARGET_OUT_HEADERS)/pvr/hal \
     $(TARGET_OUT_HEADERS)/media_resource_manager/ \
+    frameworks/native/libs/nativewindow/include \
+    frameworks/native/libs/nativebase/include \
+    frameworks/native/libs/arect/include \
     $(call include-path-for, frameworks-native)/media/openmax
 
 ifeq ($(USE_MEDIASDK),true)
