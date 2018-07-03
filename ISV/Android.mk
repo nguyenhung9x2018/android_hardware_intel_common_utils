@@ -26,7 +26,6 @@ LOCAL_SHARED_LIBRARIES := \
     libva-android \
     libmrm_omx_adaptor \
     libmedia \
-    libsync \
 
 LOCAL_HEADER_LIBRARIES := \
     libsystem_headers \
@@ -34,7 +33,6 @@ LOCAL_HEADER_LIBRARIES := \
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
-    system/core/libsync/include \
     $(call include-path-for, frameworks-openmax) \
     $(TARGET_OUT_HEADERS)/libmedia_utils_vpp \
     $(TARGET_OUT_HEADERS)/display \
